@@ -40,6 +40,42 @@ test('expressions before contact do not disclose success or failure; failure rea
   assert.deepEqual(poses[0],poses[1]); assert.equal(poses[0].startled,0);
 });
 
+test('both failed ledges stay absent after settlement and reappear only on reset', () => {
+  for (const reduced of [false, true]) for (const variant of ['crumble', 'shear']) {
+    const {scene} = makeScene(320, 340);
+    scene.setReducedOverride(reduced);
+    const drawn = [];
+    scene.ledge = index => drawn.push(index);
+    scene.shearLedge = index => drawn.push(index);
+    scene.jump({from:0, success:false, variant}, () => {});
+    const start = scene.motion.start;
+    scene.draw(start + 2001);
+    for (const ms of [2100, 3000, 10000]) {
+      drawn.length = 0; scene.draw(start + ms);
+      assert(!drawn.includes(1), `${variant} left a failed ledge at ${ms}ms`);
+      assert(drawn.includes(0)); assert(drawn.includes(2));
+    }
+    scene.reset(); drawn.length = 0; scene.draw(start + 11000);
+    assert(drawn.includes(1));
+  }
+});
+
+test('sheared edge falls with the slab and leaves no geometry at completion', () => {
+  for (const reduced of [false, true]) {
+    const {scene} = makeScene(); scene.setReducedOverride(reduced);
+    const translations = [];
+    scene.ctx.translate = (x, y) => translations.push([x, y]);
+    scene.ledge = () => {};
+    scene.shearLedge(1, .6);
+    assert(translations[0][1] > 0, 'unsupported edge must fall');
+    assert(translations[1][1] > translations[0][1], 'main slab falls first');
+    let geometry = 0;
+    scene.ledge = scene.line = scene.polygon = () => geometry++;
+    scene.shearLedge(1, 1);
+    assert.equal(geometry, 0);
+  }
+});
+
 test('collection and summit use the same short shelter sequence, one bell, and distinct summit accent', () => {
   for(const final of [false,true]) {
     const {scene,sounds}=makeScene(); scene.stage=final?12:1; scene.camera=scene.stage; let settled=0;

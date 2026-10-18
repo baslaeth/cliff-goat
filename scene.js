@@ -119,7 +119,7 @@ export class MountainScene {
       if (i !== this.failedLedge) {
         if (i === broken && m?.attempt.variant === 'shear') this.shearLedge(i, crumble);
         else this.ledge(i, i === broken ? crumble : 0);
-      } else if (this.failedVariant === 'shear') this.shearLedge(i, 1);
+      }
     }
     const gx = this.baseX + (goatStage - this.camera) * this.spacing + goatDX;
     const gy = this.baseY - (goatStage - this.camera) * this.rise + goatLift - 2 * this.s;
@@ -129,7 +129,7 @@ export class MountainScene {
     if (!this.fallen && !this.collected) this.goat(gx, gy, pose);
     if (shelter > 0) this.shelter(sx, sy, shelter, ring, true);
     this.foreground(); this.drawParticles();
-    if (completed) { if (this.fallen) this.failedVariant = m.attempt.variant; this.motion = null; completed(); }
+    if (completed) { this.motion = null; completed(); }
   }
   background() {
     const c = this.ctx, w = this.w, h = this.h, altitude = this.camera / STEP_COUNT;
@@ -225,21 +225,26 @@ export class MountainScene {
   }
   ledgeHalf(index) { return index === 0 ? 108 : 91 - index * (45.6 / STEP_COUNT); }
   shearLedge(index, progress) {
+    if (progress >= 1) return;
     const c = this.ctx, s = this.s;
     const x = this.baseX + (index - this.camera) * this.spacing;
     const y = this.baseY - (index - this.camera) * this.rise;
     const half = this.ledgeHalf(index) * s;
-    // Keep the left remnant anchored. The load-bearing right section slides
-    // along a single shear plane, visibly different from whole-ledge crumbling.
+    // The main section shears first; the unsupported edge follows shortly
+    // afterward. Both pieces leave the scene instead of leaving a thin pillar.
     const cut = x - half * .48;
-    c.save(); c.beginPath(); c.rect(x - half - 20*s, y - 90*s, half * .52 + 20*s, this.h + 900); c.clip();
+    const edgeFall = clamp((progress - .28) / .72);
+    c.save();
+    c.translate(-edgeFall * (this.reduced ? 6 : 18) * s, edgeFall * edgeFall * (this.h + 160));
+    c.globalAlpha = 1 - ease((progress - .72) / .28);
+    c.beginPath(); c.rect(x - half - 20*s, y - 90*s, half * .52 + 20*s, this.h + 900); c.clip();
     this.ledge(index, 0); c.restore();
     const slide = ease((progress - .12) / .7);
     c.save(); c.translate(slide * (this.reduced ? 12 : 43) * s, slide * slide * (this.h + 80));
     c.globalAlpha = 1 - ease((progress - .72) / .28);
     c.beginPath(); c.rect(cut, y - 90*s, half * 1.52 + 20*s, this.h + 900); c.clip();
     this.ledge(index, 0); c.restore();
-    if (progress < .8) this.line([[cut,y-8*s],[cut+3*s,y+23*s],[cut-2*s,y+55*s]], '#48584c', 2.5*s);
+    if (progress < .28) this.line([[cut,y-8*s],[cut+3*s,y+23*s],[cut-2*s,y+55*s]], '#48584c', 2.5*s);
     if (progress > .2 && progress < .9) for (let i=0;i<(this.reduced?2:4);i++) {
       const t=progress-.2;
       this.polygon([[cut+i*7*s,y+28+t*t*340],[cut+4*s+i*7*s,y+33+t*t*340],[cut+i*7*s,y+38+t*t*340]], '#7b8871');

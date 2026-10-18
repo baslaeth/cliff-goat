@@ -40,3 +40,9 @@ The constant hiss came from the four-second looping white-noise buffer in Alpine
 - Preset editor rejected $0.99, saved $2.50/$12.34/$40.00/$100.00, retained them after reload, and selected exactly $12.34. Cancel discarded edits; the editor was disabled during an active round. Restored the default four presets after testing.
 - Verified loss result contains only Loss and $10.00. Inspected the desktop interface and 320×844 mobile layout, including balance/sound placement, numeric altitude, name-only modes, text-only actions and the preset dialog. Information dialog still exposes the full odds table; normal play contains no testing controls. Browser console showed no warnings or errors.
 - Browser verification is Chromium with an emulated mobile viewport; physical device/speaker checks were not performed. The existing synthesized bell and failure cues remain finite and retain their event timing.
+
+## Complete ledge collapse — 18 October 2026
+
+The shear variant previously retained a narrow anchored strip indefinitely. The unsupported strip now drops just after the main slab, and completed failures omit the entire failed ledge. The crack line stops before the pieces separate, avoiding a floating seam. Replay restores the intact ledge. Gameplay, odds, payouts, two-second timing, sound and background are unchanged.
+
+All 20 tests and syntax checks pass. New regression checks cover both failure variants in normal/reduced motion, no failed-ledge geometry after settlement, neighbouring ledges remaining intact, delayed edge descent and replay restoration. Browser animation captures verified the shear sequence on desktop and reduced-motion shear and crumble on a 320-pixel viewport.
