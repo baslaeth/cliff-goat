@@ -11,6 +11,37 @@ const audio = new AlpineAudio();
 const scene = new MountainScene($('scene'), audio);
 if (qa) qa.connect(game, scene, audio);
 let startGuard = false;
+const presetButtons = [...document.querySelectorAll('[data-stake]')];
+let stakePresets = [500, 1000, 2500, 5000];
+try {
+  const saved = JSON.parse(localStorage.getItem('cliff-goat-stake-presets'));
+  if (Array.isArray(saved) && saved.length === 4 && saved.every(cents => Number.isInteger(cents) && cents >= 100 && cents <= 10000)) stakePresets = saved;
+} catch { /* Optional local preference. */ }
+function updatePresets() {
+  presetButtons.forEach((button, index) => { button.dataset.stake = stakePresets[index]; button.textContent = dollars(stakePresets[index]); });
+}
+updatePresets();
+const presetsDialog = $('presets-dialog');
+const presetInputs = [1, 2, 3, 4].map(index => $(`preset-${index}`));
+$('presets-edit').addEventListener('click', () => {
+  if (!game.inactive || startGuard) return;
+  presetInputs.forEach((input, index) => { input.value = (stakePresets[index] / 100).toFixed(2); input.removeAttribute('aria-invalid'); });
+  $('presets-error').textContent = ''; presetsDialog.showModal();
+});
+$('presets-cancel').addEventListener('click', () => presetsDialog.close());
+$('presets-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (!game.inactive || startGuard) return;
+  const amounts = presetInputs.map(input => parseStake(input.value));
+  presetInputs.forEach((input, index) => input.setAttribute('aria-invalid', String(amounts[index] === null)));
+  if (amounts.includes(null)) {
+    $('presets-error').textContent = 'Enter $1.00–$100.00 for each preset, with up to two decimals.';
+    presetInputs[amounts.indexOf(null)].focus(); return;
+  }
+  stakePresets = amounts;
+  try { localStorage.setItem('cliff-goat-stake-presets', JSON.stringify(stakePresets)); } catch { /* Still usable for this session. */ }
+  updatePresets(); presetsDialog.close(); render(); announce('Stake presets saved.');
+});
 
 const stageTrack = $('stage-track');
 stageTrack.innerHTML = Array.from({ length: STEP_COUNT }, (_, i) => `<span class="stage-step" data-stage="${i + 1}">${i + 1}</span>`).join('');
@@ -73,19 +104,20 @@ function render() {
   $('stake').disabled = !inactive || busy;
   $('stake-half').disabled = !inactive || busy;
   $('stake-double').disabled = !inactive || busy;
+  $('presets-edit').disabled = !inactive || busy;
   document.querySelectorAll('[data-stake]').forEach(button => { button.disabled = !inactive || busy; button.classList.toggle('selected', Number(button.dataset.stake) === stakeCents); });
   document.querySelectorAll('[data-mode]').forEach(button => {
     button.disabled = !inactive || busy;
     button.setAttribute('aria-pressed', String(button.dataset.mode === game.mode));
   });
-  $('mode-summary').textContent = `${mode.name} · ${mode.cap.toLocaleString('en-US')}× max · Step ${inactive && result?.mode !== game.mode ? 0 : game.stage} / ${STEP_COUNT}`;
+  $('mode-summary').textContent = `${mode.name} · Step ${inactive && result?.mode !== game.mode ? 0 : game.stage} / ${STEP_COUNT}`;
   $('jump').disabled = busy || (inactive && Boolean(error));
   $('collect').disabled = game.status !== 'ready' || busy;
   $('jump').setAttribute('aria-busy', String(busy));
   $('jump-label').textContent = startGuard ? 'Getting ready…' : game.status === 'jumping' ? 'Jumping…' : game.status === 'collecting' ? 'Collecting…' : game.status === 'ended' ? 'Climb again' : game.status === 'ready' ? 'Jump' : 'Start climb';
-  $('action-hint').textContent = game.status === 'jumping' ? 'One jump. Let the hooves settle.' : game.status === 'collecting' ? 'Heading for the shelter.' : game.status === 'ready' ? 'Jump once, or collect your displayed payout.' : 'Choose your route and stake.';
   $('refill').hidden = !(inactive && game.balanceCents < 100);
   $('altitude').textContent = (1240 + game.stage * 120).toLocaleString('en-US');
+  $('altitude').setAttribute('aria-label', `Altitude ${$('altitude').textContent} meters`);
   document.querySelectorAll('.stage-step').forEach(step => {
     const index = Number(step.dataset.stage);
     step.classList.toggle('current', index === game.stage);
@@ -99,6 +131,7 @@ function render() {
   if (result) {
     const lost = result.kind === 'lost', summit = result.kind === 'summit', cancelled = result.kind === 'cancelled';
     $('result-card').classList.toggle('lost', lost);
+    ['result-kicker', 'result-title', 'result-profit', 'result-description'].forEach(id => { $(id).hidden = lost; });
     $('result-kicker').textContent = lost ? 'FOOTING LOST' : cancelled ? 'ROUND CANCELLED' : summit ? 'TOP OF THE WORLD' : 'SAFELY SHELTERED';
     $('result-title').textContent = lost ? 'Back to solid ground.' : cancelled ? 'Stake returned.' : summit ? 'Peak stubbornness.' : 'Nicely climbed.';
     $('result-label').textContent = lost ? 'Loss' : cancelled ? 'Refund' : 'Collected';
@@ -172,7 +205,7 @@ $('collect').addEventListener('click', () => { if (startGuard || !game.collect()
 $('refill').addEventListener('click', () => { if (game.refill()) { render(); announce('Local balance reset to $1,000.00.'); } });
 
 const dialog = $('help-dialog');
-[$('help-open'), $('rules-open')].forEach(button => button.addEventListener('click', () => dialog.showModal()));
+$('help-open').addEventListener('click', () => dialog.showModal());
 [$('help-close'), $('help-done')].forEach(button => button.addEventListener('click', () => dialog.close()));
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
 render();

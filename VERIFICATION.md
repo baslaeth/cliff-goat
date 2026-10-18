@@ -28,3 +28,15 @@ The explicit localhost `?test=1` facility supplies boundary words to the product
 ## Scope
 
 The balance remains local to the page session and cannot be withdrawn. This is a client-side prototype, with no server authority, accounts or payment processing. Browser checks cover Chromium desktop and emulated narrow viewports; physical iOS/Android devices and other browser engines were not available for this verification.
+
+# Annotation and audio verification — 18 October 2026
+
+Applied the sixteen requested interface annotations: compact loss result, numeric altitude, header balance beside sound, removed marketing copy/footer/redundant hints and action icons, mode names without caps, History label, and a persistent four-value stake preset editor. Visible odds and round-message rows were removed as requested; screen-reader announcements and the information dialog retain the probability information. The Canvas scene, engine, cosmetic selection, animation timing, probabilities and settlement are unchanged.
+
+The constant hiss came from the four-second looping white-noise buffer in AlpineAudio.wind(), started by unlock(). Removed that source and its modulation oscillator entirely. Takeoff now uses a 110 ms low-volume filtered whoosh; hoof contact uses short tonal impacts. All one-shot sources disconnect their effect nodes when finished. Mute immediately stops active and scheduled voices, preventing lingering or replayed sound after unmute.
+
+- npm test: 18 groups passed, including all existing engine/scene tests and four new audio lifecycle tests. npm run check and git diff --check passed.
+- Real Chromium Web Audio analyser: three consecutive successful jumps generated peak output 0.08277–0.08304. Initial unmuted idle, the second after each jump, muted jump/idle, unmuted idle and post-bell idle each measured peak 0 with zero active voices. Muted during the fourth jump, then unmuted without replay. Collection completed at step 4. These are signal measurements, not an external-speaker listening assessment.
+- Preset editor rejected $0.99, saved $2.50/$12.34/$40.00/$100.00, retained them after reload, and selected exactly $12.34. Cancel discarded edits; the editor was disabled during an active round. Restored the default four presets after testing.
+- Verified loss result contains only Loss and $10.00. Inspected the desktop interface and 320×844 mobile layout, including balance/sound placement, numeric altitude, name-only modes, text-only actions and the preset dialog. Information dialog still exposes the full odds table; normal play contains no testing controls. Browser console showed no warnings or errors.
+- Browser verification is Chromium with an emulated mobile viewport; physical device/speaker checks were not performed. The existing synthesized bell and failure cues remain finite and retain their event timing.

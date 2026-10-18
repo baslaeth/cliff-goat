@@ -12,7 +12,10 @@ export function installQA() {
   captureControls.className = 'qa-capture';
   captureControls.innerHTML = '<label><input type="checkbox" id="qa-capture"> Capture animation frames</label><details id="qa-frames-detail"><summary>Latest animation frames</summary><div id="qa-frames"></div></details>';
   panel.append(captureControls);
-  let game, scene, running = false, lastVariant = 'none', sounds = [];
+  const audioCheck = document.createElement('button');
+  audioCheck.id = 'qa-audio-check'; audioCheck.textContent = 'Check jump audio and silence';
+  panel.insertBefore(audioCheck, captureControls);
+  let game, scene, gameAudio, running = false, lastVariant = 'none', sounds = [];
   const capture = type => {
     if (!$('qa-capture').checked) return;
     const motion = scene.motion;
@@ -37,6 +40,7 @@ export function installQA() {
     if (!game) return;
     $('qa-state').textContent = `${game.status} · ${game.mode} · step ${game.stage} · attempts ${game.attempt} · last failure ${lastVariant}`;
     $('qa-run').disabled = running || !game.inactive;
+    audioCheck.disabled = running || !game.inactive;
     $('qa-stop').disabled = !running;
   };
   const waitUntil = condition => new Promise((resolve, reject) => {
@@ -50,6 +54,57 @@ export function installQA() {
   });
   $('qa-reduced').addEventListener('change', () => scene?.setReducedOverride($('qa-reduced').checked ? true : null));
   $('qa-stop').addEventListener('click', () => { running = false; update(); });
+  audioCheck.addEventListener('click', async () => {
+    if (!game.inactive || running) return;
+    running = true; $('qa-outcome').value = 'success'; $('qa-report').textContent = ''; update();
+    const output = text => { $('qa-report').textContent += `${text}\n`; };
+    let analyser, meterTimer, peak = 0;
+    const wasMuted = gameAudio.muted;
+    try {
+      await gameAudio.unlock();
+      if (!gameAudio.ctx || gameAudio.ctx.state !== 'running') throw new Error('Audio context is not running');
+      if (gameAudio.muted) document.getElementById('sound-toggle').click();
+      analyser = gameAudio.ctx.createAnalyser(); analyser.fftSize = 2048;
+      gameAudio.master.connect(analyser);
+      const samples = new Float32Array(analyser.fftSize);
+      meterTimer = setInterval(() => {
+        analyser.getFloatTimeDomainData(samples);
+        for (const value of samples) peak = Math.max(peak, Math.abs(value));
+      }, 10);
+      const delay = async ms => { const until = performance.now() + ms; await waitUntil(() => performance.now() >= until); };
+      const silence = async label => {
+        await delay(150); peak = 0; await delay(1000);
+        if (gameAudio.activeVoiceCount || peak > 0.0000001) throw new Error(`${label}: voices ${gameAudio.activeVoiceCount}, peak ${peak}`);
+        output(`PASS ${label}: 1 second silence, 0 voices, output peak ${peak}.`);
+      };
+      await silence('Initial unmuted idle');
+      document.getElementById('jump').click();
+      await waitUntil(() => game.status === 'ready' && !document.getElementById('jump').disabled);
+      for (let step = 1; step <= 3; step++) {
+        peak = 0; document.getElementById('jump').click();
+        await waitUntil(() => game.stage === step && game.status === 'ready');
+        if (peak === 0) throw new Error(`Jump ${step} produced no audio`);
+        output(`PASS jump ${step}: audible signal peak ${peak.toFixed(5)}; animation contact cues unchanged.`);
+        await silence(`After jump ${step}`);
+      }
+      document.getElementById('jump').click();
+      await delay(300); document.getElementById('sound-toggle').click();
+      await waitUntil(() => game.status === 'ready');
+      await silence('Muted jump and idle');
+      document.getElementById('sound-toggle').click();
+      await silence('Unmuted idle without replay');
+      document.getElementById('collect').click();
+      await waitUntil(() => game.status === 'ended' && gameAudio.activeVoiceCount === 0);
+      await silence('After collection bell');
+      output('PASS: consecutive jumps, idle periods, mute/unmute and bell cleanup.');
+    } catch (error) { output(`FAIL: ${error.message}`); }
+    finally {
+      clearInterval(meterTimer);
+      if (analyser) { gameAudio.master.disconnect(analyser); analyser.disconnect(); }
+      if (gameAudio.muted !== wasMuted) document.getElementById('sound-toggle').click();
+      running = false; update();
+    }
+  });
   $('qa-run').addEventListener('click', async () => {
     if (!game.inactive || running) return;
     running = true; $('qa-outcome').value = 'success'; $('qa-report').textContent = ''; update();
@@ -77,7 +132,7 @@ export function installQA() {
     sample: (n, d) => sampleFraction(n, d, () => $('qa-outcome').value === 'success' ? n - 1 : $('qa-outcome').value === 'failure' ? n : cryptoWord()),
     cosmeticBit: () => $('qa-variant').value === 'crumble' ? 0 : $('qa-variant').value === 'shear' ? 1 : cosmeticBit(),
     connect(g, s, audio) {
-      game = g; scene = s;
+      game = g; scene = s; gameAudio = audio;
       // Observe rendered pixels only. The production methods and timelines run unchanged.
       for (const method of ['jump', 'collect']) {
         const original = scene[method].bind(scene);
