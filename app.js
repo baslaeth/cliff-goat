@@ -86,12 +86,11 @@ $('stake-double').addEventListener('click', () => setStake((stakeValue() ?? 1000
 document.querySelectorAll('[data-stake]').forEach(button => button.addEventListener('click', () => setStake(Number(button.dataset.stake))));
 document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
   if (startGuard || !game.selectMode(button.dataset.mode)) return;
-  if (game.status === 'idle') { scene.reset(); sceneStatus('Your route. Your stopping point.'); }
+  if (game.status === 'idle') { scene.reset(); }
   render(); announce(`${MODES[game.mode].name} selected. Maximum ${MODES[game.mode].cap.toLocaleString('en-US')}×. Twelve steps. 97% theoretical RTP.`);
 }));
 
 function announce(message) { $('round-message').textContent = message; }
-function sceneStatus(message) { $('scene-status-text').textContent = message; }
 
 function render() {
   music.update(game.status, game.stage);
@@ -133,6 +132,7 @@ function render() {
   $('altitude').setAttribute('aria-label', `Altitude ${$('altitude').textContent} meters`);
   document.querySelectorAll('.stage-step').forEach(step => {
     const index = Number(step.dataset.stage);
+    step.textContent = `${mode.stages[index - 1].multiplier.toLocaleString('en-US', { maximumFractionDigits: 2 })}×`;
     step.classList.toggle('current', index === game.stage);
     step.classList.toggle('passed', index < game.stage);
     step.classList.toggle('next', index === game.stage + 1);
@@ -165,19 +165,15 @@ function finishRound() {
   render();
   const r = game.result;
   if (r.kind === 'lost') {
-    sceneStatus('A brief disagreement with gravity.');
     announce(`Jump failed. Loss ${dollars(r.stakeCents)}. Payout $0.00. Balance ${dollars(game.balanceCents)}.`);
   } else if (r.kind === 'cancelled') {
-    sceneStatus('Back at base. Nothing lost.');
     announce(`Round cancelled. Refund ${dollars(r.payoutCents)}. Profit $0.00. Balance ${dollars(game.balanceCents)}.`);
   } else {
-    sceneStatus(r.kind === 'summit' ? 'The summit belongs to you.' : 'A good place to rest.');
     announce(`${r.kind === 'summit' ? 'Summit reached. Automatically collected' : 'Collected'} ${dollars(r.payoutCents)}. Profit ${profitDollars(r.profitCents)}. Balance ${dollars(game.balanceCents)}.`);
   }
 }
 function animateCollection() {
   const round = game.round;
-  sceneStatus(game.stage === STEP_COUNT ? 'Twelve ledges. Ring that bell.' : 'A warm shelter awaits.');
   announce(`${game.stage === 0 ? 'Refunding' : 'Collecting'} ${dollars(game.payoutCents)}. Heading into the shelter.`);
   render();
   scene.collect(game.stage === STEP_COUNT, () => { if (game.finishCollect(round)) finishRound(); });
@@ -189,7 +185,6 @@ $('jump').addEventListener('click', () => {
   if (game.inactive) {
     if (validateStake() || !game.start(stakeValue())) { render(); return; }
     scene.reset(); startGuard = true;
-    sceneStatus('Steady hooves. A fresh route.');
     announce(`${MODES[game.mode].name} climb started. Stake ${dollars(game.stakeCents)}. First jump pays ${dollars(game.next.payoutCents)} at ${percent(game.next.probability)} success. Collect now for a full refund.`);
     render();
     setTimeout(() => { startGuard = false; render(); }, 320);
@@ -202,13 +197,12 @@ $('jump').addEventListener('click', () => {
   // Cosmetic selection happens only AFTER the game has resolved a failure.
   const variant = failureVariant(attempt.success, qa?.cosmeticBit);
   qa?.recordVariant(variant);
-  sceneStatus('A careful leap.'); announce(`Attempting step ${attempt.from + 1} of ${STEP_COUNT}.`); render();
+  announce(`Attempting step ${attempt.from + 1} of ${STEP_COUNT}.`); render();
   scene.jump({ ...attempt, variant }, () => {
     if (!game.finishJump(attempt.id)) return;
     if (game.status === 'ended') finishRound();
     else if (game.status === 'collecting') animateCollection();
     else {
-      sceneStatus('Steady again. The next move is yours.');
       announce(`Step ${game.stage} of ${STEP_COUNT} reached. ${game.multiplier.toFixed(2)}×. Collect ${dollars(game.payoutCents)}, or jump at ${percent(game.next.probability)} success.`);
       render();
     }
