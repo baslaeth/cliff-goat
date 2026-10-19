@@ -60,6 +60,9 @@ export function installQA() {
     const output = text => { $('qa-report').textContent += `${text}\n`; };
     let analyser, meterTimer, peak = 0;
     const wasMuted = gameAudio.muted;
+    const musicButton = document.getElementById('music-toggle');
+    const hadMusic = musicButton.getAttribute('aria-pressed') === 'true';
+    if (hadMusic) musicButton.click(); // Isolate action sounds for the silence check.
     try {
       await gameAudio.unlock();
       if (!gameAudio.ctx || gameAudio.ctx.state !== 'running') throw new Error('Audio context is not running');
@@ -102,6 +105,7 @@ export function installQA() {
       clearInterval(meterTimer);
       if (analyser) { gameAudio.master.disconnect(analyser); analyser.disconnect(); }
       if (gameAudio.muted !== wasMuted) document.getElementById('sound-toggle').click();
+      if (hadMusic) musicButton.click();
       running = false; update();
     }
   });
@@ -131,8 +135,10 @@ export function installQA() {
   return {
     sample: (n, d) => sampleFraction(n, d, () => $('qa-outcome').value === 'success' ? n - 1 : $('qa-outcome').value === 'failure' ? n : cryptoWord()),
     cosmeticBit: () => $('qa-variant').value === 'crumble' ? 0 : $('qa-variant').value === 'shear' ? 1 : cosmeticBit(),
-    connect(g, s, audio) {
+    connect(g, s, audio, music) {
       game = g; scene = s; gameAudio = audio;
+      const musicStatus = document.createElement('output'); musicStatus.id = 'qa-music'; panel.append(musicStatus);
+      setInterval(() => { musicStatus.textContent = `Music: ${music.timer === null ? 'stopped' : 'playing'} · ${music.voices.size} voices · ${music.status} · stage ${music.stage}`; }, 200);
       // Observe rendered pixels only. The production methods and timelines run unchanged.
       for (const method of ['jump', 'collect']) {
         const original = scene[method].bind(scene);

@@ -2,14 +2,17 @@ import { Game, MODES, STEP_COUNT, buildRoundTable, parseStake, dollars, profitDo
 import { failureVariant } from './cosmetics.js';
 import { MountainScene } from './scene.js';
 import { AlpineAudio } from './audio.js';
+import { AlpineMusic } from './music.js';
 
 const $ = id => document.getElementById(id);
 const isQA = new URLSearchParams(location.search).get('test') === '1' && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 const qa = isQA ? await (await import('./qa.js')).installQA() : null;
 const game = new Game(qa ? { sample: qa.sample } : {});
 const audio = new AlpineAudio();
+const music = new AlpineMusic(audio);
+const unlockAudio = async () => { await audio.unlock(); music.sync(); };
 const scene = new MountainScene($('scene'), audio);
-if (qa) qa.connect(game, scene, audio);
+if (qa) qa.connect(game, scene, audio, music);
 let startGuard = false;
 const presetButtons = [...document.querySelectorAll('[data-stake]')];
 let stakePresets = [500, 1000, 2500, 5000];
@@ -54,7 +57,16 @@ function updateSound() {
   $('sound-toggle').querySelector('use').setAttribute('href', audio.muted ? '#i-mute' : '#i-sound');
 }
 updateSound();
-$('sound-toggle').addEventListener('click', () => { audio.setMuted(!audio.muted); void audio.unlock(); updateSound(); });
+$('sound-toggle').addEventListener('click', () => { audio.setMuted(!audio.muted); music.sync(); void unlockAudio(); updateSound(); });
+function updateMusicButton() {
+  $('music-toggle').setAttribute('aria-pressed', String(music.enabled));
+  $('music-toggle').setAttribute('aria-label', music.enabled ? 'Turn music off' : 'Turn music on');
+  $('music-toggle').title = music.enabled ? 'Turn music off' : 'Turn music on';
+}
+updateMusicButton();
+$('music-toggle').addEventListener('click', () => { music.setEnabled(!music.enabled); updateMusicButton(); void unlockAudio(); });
+document.addEventListener('visibilitychange', () => music.sync());
+window.addEventListener('pagehide', () => music.stop());
 
 function stakeValue() { return parseStake($('stake').value); }
 function validateStake() {
@@ -82,6 +94,7 @@ function announce(message) { $('round-message').textContent = message; }
 function sceneStatus(message) { $('scene-status-text').textContent = message; }
 
 function render() {
+  music.update(game.status, game.stage);
   const inactive = game.inactive;
   const busy = game.status === 'jumping' || game.status === 'collecting' || startGuard;
   const stakeCents = inactive ? stakeValue() : game.stakeCents;
@@ -172,7 +185,7 @@ function animateCollection() {
 
 $('jump').addEventListener('click', () => {
   if (startGuard || $('jump').disabled) return;
-  void audio.unlock();
+  void unlockAudio();
   if (game.inactive) {
     if (validateStake() || !game.start(stakeValue())) { render(); return; }
     scene.reset(); startGuard = true;
@@ -201,7 +214,7 @@ $('jump').addEventListener('click', () => {
     }
   });
 });
-$('collect').addEventListener('click', () => { if (startGuard || !game.collect()) return; void audio.unlock(); animateCollection(); });
+$('collect').addEventListener('click', () => { if (startGuard || !game.collect()) return; void unlockAudio(); animateCollection(); });
 $('refill').addEventListener('click', () => { if (game.refill()) { render(); announce('Local balance reset to $1,000.00.'); } });
 
 const dialog = $('help-dialog');

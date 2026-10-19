@@ -7,6 +7,6 @@
     "dev": "node server.js",
     "start": "node server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check app.js && node --check scene.js && node --check audio.js && node --check engine.js && node --check cosmetics.js && node --check qa.js && node --check server.js"
+    "check": "node --check app.js && node --check scene.js && node --check audio.js && node --check music.js && node --check engine.js && node --check cosmetics.js && node --check qa.js && node --check server.js"
   }
 }

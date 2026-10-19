@@ -46,3 +46,12 @@ The constant hiss came from the four-second looping white-noise buffer in Alpine
 The shear variant previously retained a narrow anchored strip indefinitely. The unsupported strip now drops just after the main slab, and completed failures omit the entire failed ledge. The crack line stops before the pieces separate, avoiding a floating seam. Replay restores the intact ledge. Gameplay, odds, payouts, two-second timing, sound and background are unchanged.
 
 All 20 tests and syntax checks pass. New regression checks cover both failure variants in normal/reduced motion, no failed-ledge geometry after settlement, neighbouring ledges remaining intact, delayed edge descent and replay restoration. Browser animation captures verified the shear sequence on desktop and reduced-motion shear and crumble on a 320-pixel viewport.
+
+
+## Alpine music — 20 October 2026
+
+Added an original synthesized alpine motif with a restrained height-dependent pulse, no external assets and no noise bed. Separate persistent music toggle; master mute stops both music and effects. One scheduler, finite notes, background-tab cleanup, no missed-note bursts, reduced music level during jumps, and silence at round end. Music uses only public status and completed stage. Existing engine, payouts and scene animation remain unchanged.
+
+All 22 test groups and all syntax checks pass. Music lifecycle tests cover duplicate scheduling, finite voices, mute/unmute, hidden tabs, collection/end, independent disable and stalled-clock recovery. Browser diagnostics verify an active scheduler with finite voices and master mute with zero voices. Physical speaker/headphone timbre assessment was not performed.
+
+Browser full-climb check: all 12 Easy steps completed, automatically collecting .00 on .00; music diagnostics then showed stopped with zero voices. The new control fits a 320×844 viewport and its off preference survives reload. Console had no warnings/errors.
