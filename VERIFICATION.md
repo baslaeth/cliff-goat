@@ -69,3 +69,9 @@ Browser full-climb check: all 12 Easy steps completed, automatically collecting 
 - Softer goat chest, muzzle, eyes and ears preserve the jointed-leg rig and planted contact points.
 - All 24 test groups, syntax checks and diff whitespace checks passed. New tests cover reversible theme interpolation, reduced motion and round independence.
 - Browser verified desktop and 375px mobile day/night views, switching during a successful jump, captured landing, collection, and theme persistence after reload. No browser warnings/errors.
+
+## 2026-10-21 — cartoon mascot redesign
+- Replaced the previous anatomy with a compact bean-shaped body, oversized rounded head, short sturdy articulated legs, broad split hooves, hooked horns, large ears, short muzzle and small beard. Restrained cream shading replaces fur and muscle detail.
+- Idle face uses lively eyes, asymmetric lowered brows and a small sideways grin. Focused anticipation, brief post-landing pride, startled failure and pleased collection are event-driven. Squash/stretch affects the body; face proportions remain stable and toes remain anchored during compression.
+- Inspected idle at normal desktop night and mobile day sizes before adding reactions. Browser QA completed all twelve jumps and automatic summit collection ($100.00 gross on $10.00), with captured flight, landing and shelter poses. Inspected both failure styles, including reduced motion.
+- All 25 tests pass, including new event-expression checks, existing planted-hoof assertions, animation durations and outcome independence. Syntax checks pass. Background, themes, timing, audio and engine unchanged.

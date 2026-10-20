@@ -129,3 +129,17 @@ test('day/night interpolation is bounded, reversible, reduced-motion aware and i
   scene.setNight(false);scene.draw(scene.themeTransition.start+351);assert.equal(scene.night,0);
   scene.setReducedOverride(true);scene.setNight(true);assert.equal(scene.night,1);assert.equal(scene.themeTransition,null);
 });
+
+test('mascot reacts to settled events with focus, pride, surprise and collection relief', () => {
+  for(const success of [true,false]) {
+    const {scene}=makeScene();let pose;
+    scene.goat=(x,y,p)=>{pose=p;};scene.jump({from:0,success,variant:'crumble'},()=>{});
+    const start=scene.motion.start;
+    scene.draw(start+150);assert(pose.focus>0);assert.equal(pose.startled,0);assert.equal(pose.proud,0);
+    scene.draw(start+1400);
+    if(success){assert(pose.proud>0);assert.equal(pose.startled,0);}
+    else {assert.equal(pose.startled,1);assert.equal(pose.proud,0);}
+  }
+  const {scene}=makeScene();let pose;scene.goat=(x,y,p)=>{pose=p;};
+  scene.collect(false,()=>{});scene.draw(scene.motion.start+300);assert(pose.relief>0);
+});

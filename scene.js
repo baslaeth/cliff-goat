@@ -95,7 +95,7 @@ export class MountainScene {
     }
     this.clock = now / 1000;
     const c = this.ctx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.clearRect(0, 0, this.w, this.h);
-    const m = this.motion; let pose = { crouch: 0, airborne: 0, nod: 0, scramble: 0, tilt: 0, walk: 0, opacity: 1, scale: 1, focus: 0, startled: 0, relief: 0 };
+    const m = this.motion; let pose = { crouch: 0, airborne: 0, nod: 0, scramble: 0, tilt: 0, walk: 0, opacity: 1, scale: 1, focus: 0, startled: 0, relief: 0, proud: 0 };
     let goatStage = this.stage, goatLift = 0, goatDX = 0, broken = -1, crumble = 0, shelter = this.collected ? 1 : 0, ring = 0;
     let completed = null;
     if (m?.type === 'jump') {
@@ -115,7 +115,7 @@ export class MountainScene {
       this.event(m, 'contact', t, 1.20, 'hoof');
       if (m.attempt.success) {
         if (t > 1.48 && t < 1.86) pose.scramble = Math.sin((t - 1.48) * 46) * (1 - (t - 1.48) / .38);
-        if (t > 1.86 && t < 2.35) pose.nod = Math.sin((t - 1.86) * 28) * .15 * (1 - (t - 1.86) / .49);
+        if (t > 1.86 && t < 2.35) { pose.nod = Math.sin((t - 1.86) * 28) * .15 * (1 - (t - 1.86) / .49); pose.proud = Math.sin((t - 1.86) / .49 * Math.PI); }
         this.event(m, 'scramble', t, 1.49, 'scramble');
         this.camera = from + ease((t - 1.55) / 1.25);
         if (t >= 2.85) { this.stage = from + 1; this.camera = this.stage; completed = m.done; }
@@ -291,58 +291,62 @@ export class MountainScene {
   goat(x,y,p) {
     const c=this.ctx,s=this.s*1.04*p.scale;
     c.save();c.translate(x,y);c.scale(s,s);c.globalAlpha=p.opacity;
-    const breath=this.reduced?0:Math.sin(this.clock*2.3)*.35;
-    if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-3,1,39,3,'#49564030');
+    if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-2,1,35,3,'#49564030');
     c.rotate(p.tilt);
-    const hipY=-43+p.crouch*12+breath;
-    // Three-segment legs: hock/carpal flexion moves the body over fixed toes.
+    const hipY=-28+p.crouch*8;
+    // Short, sturdy jointed legs. Toes stay anchored while the hips compress.
     const leg=(hx,far)=>{
-      const rear=hx<0, stride=p.walk*(rear?-5:5);
-      const fx=hx+(rear?-15:19)*p.airborne+p.scramble*(rear?3:-3)+stride;
-      const fy=-2-p.airborne*(rear?13:22)-Math.abs(p.walk)*(rear?3:1);
-      const kneeX=hx+(rear?10:1)+p.crouch*(rear?9:-9);
-      const hockX=hx+(rear?-4:2)+p.crouch*(rear?-3:-5)-p.airborne*(rear?9:-8);
-      this.line([[hx,hipY],[kneeX,hipY+17],[hockX,fy-15],[fx,fy-4]],far?'#b9bda7':'#e6e5ce',far?5:6);
-      this.ellipse(kneeX,hipY+17,3.6,4,far?'#b9bda7':'#e6e5ce');
-      this.polygon([[fx-4,fy-5],[fx+3,fy-5],[fx+6,fy],[fx-5,fy]],far?'#596052':'#414b40');
-      this.line([[fx+1,fy-4],[fx+2,fy]],'#b6b8a0',.9);
+      const rear=hx<0;
+      const fx=hx+(rear?-12:14)*p.airborne+p.scramble*(rear?3:-3)+p.walk*(rear?-4:4);
+      const fy=-2-p.airborne*(rear?10:17)-Math.abs(p.walk)*2;
+      const kneeX=hx+(rear?5:-2)+p.crouch*(rear?7:-6);
+      this.line([[hx,hipY],[kneeX,(hipY+fy)*.5],[fx,fy-5]],far?'#c6c9b0':'#f4efd8',far?8:10);
+      this.polygon([[fx-6,fy-6],[fx+4,fy-6],[fx+7,fy],[fx-6,fy]],far?'#596052':'#414b40');
+      this.line([[fx+1,fy-4],[fx+2,fy]],'#aeb49b',1.2);
     };
-    c.save();c.translate(-6,-1);leg(-29,true);leg(22,true);c.restore();
-    this.polygon([[-46,hipY-12],[-58,hipY-22],[-55,hipY-28],[-43,hipY-20]],'#e8e6cc');
-    // A longer ribcage, defined withers and a shaded belly retain the flat alpine palette.
-    c.beginPath();c.moveTo(-46,hipY-16);c.bezierCurveTo(-40,hipY-34,-17,hipY-31,7,hipY-28);c.bezierCurveTo(20,hipY-34,32,hipY-23,30,hipY-7);c.bezierCurveTo(24,hipY+9,-20,hipY+13,-39,hipY+2);c.bezierCurveTo(-47,hipY-3,-50,hipY-9,-46,hipY-16);c.closePath();c.fillStyle='#edead3';c.fill();
-    c.beginPath();c.moveTo(-44,hipY-9);c.bezierCurveTo(-27,hipY+7,7,hipY+5,26,hipY-9);c.bezierCurveTo(22,hipY+13,-20,hipY+14,-39,hipY+2);c.closePath();c.fillStyle='#cdd0b8';c.fill();
-    this.ellipse(-22,hipY-16,25,16,'#f6f1db',-.08);
-    this.ellipse(20,hipY-19,17,24,'#e4e3c9',.12);
-    leg(-29,false);leg(22,false);
-    this.line([[-33,hipY-17],[-30,hipY-22],[-28,hipY-17]],'#d9dbc2',1);
-    this.line([[12,hipY-21],[15,hipY-16],[14,hipY-9]],'#c7ccb2',1.3);
-    c.save();c.translate(24,hipY-30);c.rotate(p.nod*.7);
-    // Tapered backward-curving horns, rather than curled ram horns.
-    const horn=(dx,shade)=>{c.beginPath();c.moveTo(dx,-13);c.bezierCurveTo(dx-2,-30,dx-13,-44,dx-31,-46);c.bezierCurveTo(dx-21,-42,dx-10,-27,dx-8,-11);c.closePath();c.fillStyle=shade;c.fill();};
-    horn(2,'#70735e');horn(12,'#969077');
-    this.line([[3,-28],[8,-30]],'#c0b69a',1.2);this.line([[-4,-37],[0,-39]],'#c0b69a',1);this.line([[7,-20],[12,-21]],'#c0b69a',1.2);
-    const ear=.1+p.focus*.25-p.startled*.5;
-    this.ellipse(-4,-9,12,4,'#bbbfa5',-.2-ear);
-    this.ellipse(10,-7,15,19,'#f2edd6',-.18);
-    // Sloping forehead, long nasal bridge and small muzzle.
-    c.beginPath();c.moveTo(11,-20);c.bezierCurveTo(19,-18,20,-9,25,-4);c.lineTo(31,4);c.quadraticCurveTo(40,10,31,14);c.lineTo(21,12);c.bezierCurveTo(12,10,7,2,7,-8);c.closePath();c.fillStyle='#e6e4cc';c.fill();
-    this.polygon([[17,7],[17,18],[21,15],[22,23],[27,13],[27,9]],'#bfc6ac');
-    this.line([[21,13],[22,19]],'#e9e8ce',1.3);
-    this.ellipse(31,8,8,6,'#858b74',.12);
-    this.ellipse(35,7.5,1.4,.9,'#434f41');
-    this.line([[28,12],[35,12]],'#58614f',1);
-    const blink=this.clock%5.8>5.6;
-    if(blink&&!p.startled)this.line([[15,-8],[21,-7]],'#45513f',1.2);
+    c.save();c.translate(-5,-1);leg(-23,true);leg(18,true);c.restore();
+    // A single bean-shaped body and one shadow, without fur or muscle detail.
+    this.ellipse(-42,hipY-20,9,5,'#f4efd8',.65);
+    const stretch = p.airborne*2 + p.crouch*2;
+    this.ellipse(-10,hipY-13,34+stretch,24-p.crouch*2-p.airborne,'#d7dac0');
+    this.ellipse(-11,hipY-17,33+stretch,23-p.crouch*2-p.airborne,'#f7f0d9');
+    leg(-23,false);leg(18,false);
+    c.save();c.translate(22,hipY-36);c.rotate(p.nod*.65-(p.proud||0)*.06);
+    // Broad hooked horns and big ears make a goat silhouette at small sizes.
+    const horn=(dx,shade)=>{
+      c.beginPath();c.moveTo(dx,-15);c.bezierCurveTo(dx-1,-35,dx-13,-43,dx-23,-34);
+      c.bezierCurveTo(dx-29,-28,dx-25,-22,dx-23,-23);
+      c.bezierCurveTo(dx-26,-33,dx-15,-35,dx-11,-25);c.lineTo(dx-8,-13);c.closePath();c.fillStyle=shade;c.fill();
+    };
+    horn(-4,'#74785f');horn(13,'#989177');
+    this.line([[4,-28],[10,-31]],'#c6bc98',2);
+    const earTilt = -.28-p.focus*.3+p.startled*.55+p.relief*.16;
+    this.ellipse(-16,-8,13,7,'#d3d7bc',earTilt);
+    this.ellipse(7,-1,25,25,'#dedfc4');
+    this.ellipse(6,-4,24,24,'#fff4da');
+    this.polygon([[5,17],[7,29],[12,25],[15,31],[19,18]],'#c4ccb0');
+    this.ellipse(-16,-10,14,7,'#f7efd5',earTilt);
+    this.ellipse(-19,-10,7,3,'#b5bea0',earTilt);
+    // Three-quarter face: large lively eyes, asymmetrical brows and a short muzzle.
+    const eye=(ex,ey,rx)=>{
+      const blink = this.clock%5.8>5.65 && !p.startled;
+      if(blink) { this.line([[ex-rx,ey],[ex+rx,ey]],'#526047',2);return; }
+      this.ellipse(ex,ey,rx,7+p.startled*1.5-p.focus-p.relief,'#fffdf0');
+      this.ellipse(ex+1.8,ey+.4,3.4,4.8,'#526047');
+      this.ellipse(ex+2.5,ey+.5,1.8,3.1,'#283d32');
+      this.ellipse(ex+1,ey-1.9,1.2,1.2,'#fffdf0');
+    };
+    eye(3,-5,6);eye(19,-6,5.7);
+    const browLift = p.startled*6+p.relief*2+(p.proud||0)*1.5;
+    this.line([[-3,-13-browLift],[7,-10.8-browLift-p.focus]],'#66714f',2.7);
+    this.line([[14,-12-browLift-p.focus],[23,-14-browLift]],'#66714f',2.6);
+    this.ellipse(19,10,15,10,'#d1d6b5');
+    this.ellipse(26,6,2.2,1.6,'#58654b');
+    if(p.startled) this.ellipse(22,14,4,4.8,'#4d6147');
     else {
-      this.ellipse(18,-8,4.8,p.startled?5:3.8-p.focus*.4,'#fbf7df',.1);
-      this.ellipse(19,-8,2.6,2.8,'#9ca27a');
-      this.ellipse(19.5,-8,1.9,1.1,'#303d34');
-      this.ellipse(17.5,-8.8,.55,.5,'#f4f1d9');
-      this.line([[14,-12],[18,-12.5],[22,-12]],'#747c5e',1.3);
+      c.beginPath();c.moveTo(12,13);c.quadraticCurveTo(22,19+p.relief*2-p.focus*3,29,12-p.relief);c.strokeStyle='#4d6147';c.lineWidth=1.9;c.lineCap='round';c.stroke();
+      this.line([[28,11-p.relief],[30,13-p.relief]],'#4d6147',1.5);
     }
-    this.ellipse(-1,-13,12,4.8,'#eae7ce',-.2-ear);
-    this.line([[-6,-12],[3,-14]],'#aeb79b',1.2);
     c.restore();c.restore();
   }
   shelterOffset() { return Math.min(40, this.ledgeHalf(this.stage) - 36); }
