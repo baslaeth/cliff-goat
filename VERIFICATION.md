@@ -55,3 +55,10 @@ Added an original synthesized alpine motif with a restrained height-dependent pu
 All 22 test groups and all syntax checks pass. Music lifecycle tests cover duplicate scheduling, finite voices, mute/unmute, hidden tabs, collection/end, independent disable and stalled-clock recovery. Browser diagnostics verify an active scheduler with finite voices and master mute with zero voices. Physical speaker/headphone timbre assessment was not performed.
 
 Browser full-climb check: all 12 Easy steps completed, automatically collecting .00 on .00; music diagnostics then showed stopped with zero voices. The new control fits a 320×844 viewport and its off preference survives reload. Console had no warnings/errors.
+
+## 2026-10-21 — goat and annotated interface refinement
+- Removed only the two base-camp ledge pines and bottom-left coordinate caption; retained the surrounding alpine scenery.
+- Added visible Balance label, stronger multiplier/payout hierarchy, and one Audio settings button opening a native modal. Sound retains its existing master-mute behavior; Music retains its separate preference. Escape dismisses the modal.
+- Redrew the goat with a leaner ribcage, defined withers, cream shading, tapered curved horns, small horizontal pupils, beard and split hooves. Three-segment legs bend over fixed contact points during compression.
+- `npm test`: 23 passing groups, including new planted-hoof and airborne-clearance assertions. `npm run check` and `git diff --check` pass. Engine, probabilities and settlement code unchanged.
+- Browser: inspected desktop and 375px mobile layouts, successful jump captured frames, manual collection, replay and mobile shear failure. Verified both audio toggles and Escape dismissal; no browser errors/warnings. Existing automated tests cover both failure variants, reduced motion and all settlement paths.

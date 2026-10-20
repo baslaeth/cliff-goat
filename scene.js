@@ -206,7 +206,6 @@ export class MountainScene {
       this.line([[xx,-7*s],[xx-3*s,-14*s],[xx+1*s,-10*s],[xx+5*s,-17*s]],'#879855',1*s);
     }
     if(index===0){
-      this.pine(-half+18*s,-9*s,80*s,'#476e54'); this.pine(-half-12*s,21*s,109*s,'#587b57');
       this.line([[-half+60*s,-7*s],[-half+60*s,-38*s]],'#697352',3*s);
       this.polygon([[-half+43*s,-39*s],[-half+76*s,-39*s],[-half+82*s,-32*s],[-half+76*s,-25*s],[-half+43*s,-25*s]],'#e6ddad');
       c.fillStyle='#77805d';c.font=`600 ${6*s}px sans-serif`;c.textAlign='center';c.fillText('BASE CAMP',-half+61*s,-29*s);
@@ -253,55 +252,57 @@ export class MountainScene {
   goat(x,y,p) {
     const c=this.ctx,s=this.s*1.04*p.scale;
     c.save();c.translate(x,y);c.scale(s,s);c.globalAlpha=p.opacity;
-    const breath=this.reduced?0:Math.sin(this.clock*2.3)*.6;
-    // Hoof positions remain planted while the body compresses above them.
-    if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-2,1,37,4,'#49564035');
+    const breath=this.reduced?0:Math.sin(this.clock*2.3)*.35;
+    if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-3,1,39,3,'#49564030');
     c.rotate(p.tilt);
-    const hipY=-40+p.crouch*13+breath;
+    const hipY=-47+p.crouch*12+breath;
+    // Three-segment legs: hock/carpal flexion moves the body over fixed toes.
     const leg=(hx,far)=>{
-      const rear=hx<0, phase=rear?-1:1;
-      const footX=hx+phase*(p.airborne*17)+p.scramble*(rear?5:-4)+p.walk*(rear?-5:5);
-      const footY=-2-p.airborne*(rear?14:24)-Math.abs(p.walk)*(rear?3:1);
-      const kneeX=hx+(rear?7:-5)+p.crouch*(rear?8:-8)+p.airborne*(rear?-10:10);
-      this.line([[hx,hipY],[kneeX,(hipY+footY)*.5],[footX,footY-4]],far?'#c5c8ab':'#f1efda',far?7:8);
-      this.line([[footX-3,footY],[footX+4,footY]],far?'#5b6250':'#4d5646',6);
-      this.line([[footX+1,footY-2],[footX+1,footY+1]],'#a1a38b',.8);
+      const rear=hx<0, stride=p.walk*(rear?-5:5);
+      const fx=hx+(rear?-15:19)*p.airborne+p.scramble*(rear?3:-3)+stride;
+      const fy=-2-p.airborne*(rear?13:22)-Math.abs(p.walk)*(rear?3:1);
+      const kneeX=hx+(rear?10:1)+p.crouch*(rear?9:-9);
+      const hockX=hx+(rear?-4:2)+p.crouch*(rear?-3:-5)-p.airborne*(rear?9:-8);
+      this.line([[hx,hipY],[kneeX,hipY+17],[hockX,fy-15],[fx,fy-4]],far?'#b9bda7':'#e6e5ce',far?5:6);
+      this.ellipse(kneeX,hipY+17,3.6,4,far?'#b9bda7':'#e6e5ce');
+      this.polygon([[fx-4,fy-5],[fx+3,fy-5],[fx+6,fy],[fx-5,fy]],far?'#596052':'#414b40');
+      this.line([[fx+1,fy-4],[fx+2,fy]],'#b6b8a0',.9);
     };
-    c.save();c.translate(-5,-2);leg(-26,true);leg(17,true);c.restore();
-    // An unadorned cream coat; jointed legs stay grounded as the torso compresses.
-    c.save();c.translate(-42,hipY-12);c.rotate(-.3+Math.sin(this.clock*3)*.12);this.polygon([[0,5],[-13,-7],[-9,-14],[5,-3]],'#e9e8ce','#d5d6ba',1);c.restore();
-    this.ellipse(-11,hipY-8,39+p.crouch*3+p.airborne*3,24-p.crouch*2-p.airborne*2,'#c8ccb0',-.06);
-    this.ellipse(-10,hipY-12,38+p.crouch*3+p.airborne*3,23-p.crouch*2-p.airborne*2,'#f5f0d9',-.04);
-    this.polygon([[-41,hipY-16],[-39,hipY-3],[-30,hipY-1],[-26,hipY+6],[-17,hipY+5],[-11,hipY+10],[-3,hipY+5],[6,hipY+8],[11,hipY-3]],'#f5f0d9');
-    this.line([[-30,hipY-18],[-26,hipY-21],[-23,hipY-17]],'#d9ddc3',1.5);
-    this.line([[-10,hipY-22],[-6,hipY-24],[-3,hipY-21]],'#d9ddc3',1.5);
-    leg(-27,false);leg(19,false);
-    this.ellipse(16,hipY-19,17,24,'#edead0',-.22);
-    c.save();c.translate(20,hipY-27);c.rotate(p.nod);
-    // Swept-back, hooked horns, separated clearly from the expressive ears.
-    c.beginPath(); c.moveTo(0,-17); c.bezierCurveTo(-2,-38,-12,-53,-27,-44); c.bezierCurveTo(-34,-39,-32,-31,-28,-29); c.bezierCurveTo(-32,-41,-18,-44,-12,-32); c.lineTo(-5,-16); c.closePath(); c.fillStyle='#666b55'; c.fill();
-    c.beginPath(); c.moveTo(17,-18); c.bezierCurveTo(20,-42,5,-60,-12,-52); c.bezierCurveTo(-23,-47,-24,-38,-19,-33); c.bezierCurveTo(-23,-46,-9,-50,-2,-40); c.bezierCurveTo(5,-32,5,-24,7,-17); c.closePath(); c.fillStyle='#88856b'; c.fill();
-    this.line([[-4,-47],[0,-51]],'#bab08c',1.5);this.line([[4,-39],[10,-42]],'#bab08c',1.5);this.line([[8,-30],[15,-32]],'#bab08c',1.5);
-    const earAngle=.15 + p.focus*.45 - p.startled*.7 - p.relief*.12;
-    this.ellipse(-3,-12,13,5.5,'#dddcc0',earAngle);this.ellipse(-7,-12,7,2.5,'#a7ab8c',earAngle);
-    this.ellipse(17,-8,17,22,'#f7f1d9',-.27);
-    this.polygon([[14,5],[14,17],[18,15],[20,23],[26,13],[25,5]],'#d4d7bb');
-    this.line([[19,11],[20,18]],'#aeb79a',1);
-    this.ellipse(29,-3,15,11,'#6d735b',.15);
-    this.ellipse(37,-1,8,7,'#82836a');
-    this.ellipse(25,-12,6,7,'#e3e3c6');
+    c.save();c.translate(-6,-1);leg(-29,true);leg(22,true);c.restore();
+    this.polygon([[-46,hipY-12],[-58,hipY-22],[-55,hipY-28],[-43,hipY-20]],'#e8e6cc');
+    // A longer ribcage, defined withers and a shaded belly retain the flat alpine palette.
+    c.beginPath();c.moveTo(-46,hipY-16);c.bezierCurveTo(-40,hipY-34,-17,hipY-31,7,hipY-28);c.bezierCurveTo(20,hipY-34,32,hipY-23,30,hipY-7);c.bezierCurveTo(24,hipY+9,-20,hipY+13,-39,hipY+2);c.bezierCurveTo(-47,hipY-3,-50,hipY-9,-46,hipY-16);c.closePath();c.fillStyle='#edead3';c.fill();
+    c.beginPath();c.moveTo(-44,hipY-9);c.bezierCurveTo(-27,hipY+7,7,hipY+5,26,hipY-9);c.bezierCurveTo(22,hipY+13,-20,hipY+14,-39,hipY+2);c.closePath();c.fillStyle='#cdd0b8';c.fill();
+    this.ellipse(-23,hipY-17,22,11,'#f6f1db',-.08);
+    this.ellipse(22,hipY-18,13,23,'#e4e3c9',.2);
+    leg(-29,false);leg(22,false);
+    this.line([[-33,hipY-17],[-30,hipY-22],[-28,hipY-17]],'#d9dbc2',1);
+    this.line([[12,hipY-21],[15,hipY-16],[14,hipY-9]],'#c7ccb2',1.3);
+    c.save();c.translate(26,hipY-31);c.rotate(p.nod*.7);
+    // Tapered backward-curving horns, rather than curled ram horns.
+    const horn=(dx,shade)=>{c.beginPath();c.moveTo(dx,-13);c.bezierCurveTo(dx-2,-30,dx-13,-44,dx-31,-46);c.bezierCurveTo(dx-21,-42,dx-10,-27,dx-8,-11);c.closePath();c.fillStyle=shade;c.fill();};
+    horn(2,'#70735e');horn(12,'#969077');
+    this.line([[3,-28],[8,-30]],'#c0b69a',1.2);this.line([[-4,-37],[0,-39]],'#c0b69a',1);this.line([[7,-20],[12,-21]],'#c0b69a',1.2);
+    const ear=.1+p.focus*.25-p.startled*.5;
+    this.ellipse(-4,-9,12,4,'#bbbfa5',-.2-ear);
+    this.ellipse(9,-7,11,17,'#f2edd6',-.25);
+    // Sloping forehead, long nasal bridge and small muzzle.
+    c.beginPath();c.moveTo(11,-20);c.bezierCurveTo(19,-18,20,-9,25,-4);c.lineTo(36,6);c.quadraticCurveTo(40,12,32,14);c.lineTo(21,12);c.bezierCurveTo(12,10,7,2,7,-8);c.closePath();c.fillStyle='#e6e4cc';c.fill();
+    this.polygon([[17,7],[17,18],[21,15],[22,23],[27,13],[27,9]],'#bfc6ac');
+    this.line([[21,13],[22,19]],'#e9e8ce',1.3);
+    this.ellipse(32,9,7,4.5,'#858b74',.2);
+    this.ellipse(35,7.5,1.4,.9,'#434f41');
+    this.line([[28,12],[35,12]],'#58614f',1);
     const blink=this.clock%5.8>5.6;
-    if(blink && !p.startled)this.line([[20,-13],[28,-13]],'#37463c',1.7);
+    if(blink&&!p.startled)this.line([[15,-8],[21,-7]],'#45513f',1.2);
     else {
-      const eyeHeight=p.startled?5.8:p.relief?2.5:3.8-p.focus*.7;
-      this.ellipse(24,-13,4.5,eyeHeight,'#fffced');
-      this.ellipse(25,-12.5,p.startled?1.4:2,Math.min(2.5,eyeHeight),'#34463b');
-      this.line([[20,-17-p.startled*2],[28,-17-p.startled*2]],'#657052',1.6);
+      this.ellipse(18,-8,3.2,p.startled?3:2.1,'#a9a77a',.15);
+      this.ellipse(18.5,-8,2.1,.8,'#303d34');
+      this.ellipse(17.5,-8.8,.55,.5,'#f4f1d9');
+      this.line([[14.8,-10],[18,-10.7],[21,-9.4]],'#626c54',1);
     }
-    this.ellipse(39,-4,1.5,1,'#465541');
-    if(p.startled)this.ellipse(38,5,2.5,3,'#465541');
-    else this.line([[33,4],[39,4+p.relief],[42,3.5]],'#4e6048',1.3);
-    this.ellipse(9,-16,11,4.5,'#f0edd0',-.25-p.focus*.35+p.startled*.6);
+    this.ellipse(1,-13,10,3.5,'#eae7ce',-.2-ear);
+    this.line([[-6,-12],[3,-14]],'#aeb79b',1.2);
     c.restore();c.restore();
   }
   shelterOffset() { return Math.min(40, this.ledgeHalf(this.stage) - 36); }

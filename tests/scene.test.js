@@ -104,3 +104,16 @@ test('flight reserves horn clearance on short desktop and narrow mobile scenes',
     for(let ms=0;ms<=850;ms+=10)scene.draw(start+ms);
   }
 });
+
+
+test('hoof contact stays planted through weight compression, with cloven toes on all legs', () => {
+  const {scene}=makeScene(); scene.reduced=true;
+  const base={scale:1,opacity:1,airborne:0,tilt:0,crouch:0,scramble:0,walk:0,nod:0,focus:0,startled:0,relief:0};
+  const feet=[];
+  scene.polygon=(points,color)=>{if(['#596052','#414b40'].includes(color))feet.push(points);};
+  scene.goat(0,0,base); const resting=feet.splice(0);
+  scene.goat(0,0,{...base,crouch:1});
+  assert.equal(resting.length,4); assert.deepEqual(feet,resting);
+  feet.length=0;scene.goat(0,0,{...base,airborne:1});
+  assert(feet.every(foot=>foot.every(point=>point[1]<-2)), 'all hooves clear the ground during flight');
+});

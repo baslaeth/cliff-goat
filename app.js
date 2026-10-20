@@ -52,19 +52,23 @@ stageTrack.innerHTML = Array.from({ length: STEP_COUNT }, (_, i) => `<span class
 function updateSound() {
   const label = audio.muted ? 'Unmute sound' : 'Mute sound';
   $('sound-toggle').setAttribute('aria-label', label);
-  $('sound-toggle').setAttribute('aria-pressed', String(audio.muted));
+  $('sound-toggle').setAttribute('aria-pressed', String(!audio.muted));
   $('sound-toggle').title = label;
+  $('sound-state').textContent = audio.muted ? 'Off' : 'On';
   $('sound-toggle').querySelector('use').setAttribute('href', audio.muted ? '#i-mute' : '#i-sound');
 }
 updateSound();
 $('sound-toggle').addEventListener('click', () => { audio.setMuted(!audio.muted); music.sync(); void unlockAudio(); updateSound(); });
 function updateMusicButton() {
+  $('music-state').textContent = music.enabled ? 'On' : 'Off';
   $('music-toggle').setAttribute('aria-pressed', String(music.enabled));
   $('music-toggle').setAttribute('aria-label', music.enabled ? 'Turn music off' : 'Turn music on');
   $('music-toggle').title = music.enabled ? 'Turn music off' : 'Turn music on';
 }
 updateMusicButton();
 $('music-toggle').addEventListener('click', () => { music.setEnabled(!music.enabled); updateMusicButton(); void unlockAudio(); });
+$('audio-settings').addEventListener('click', () => $('audio-dialog').showModal());
+$('audio-close').addEventListener('click', () => $('audio-dialog').close());
 document.addEventListener('visibilitychange', () => music.sync());
 window.addEventListener('pagehide', () => music.stop());
 
