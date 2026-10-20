@@ -62,3 +62,10 @@ Browser full-climb check: all 12 Easy steps completed, automatically collecting 
 - Redrew the goat with a leaner ribcage, defined withers, cream shading, tapered curved horns, small horizontal pupils, beard and split hooves. Three-segment legs bend over fixed contact points during compression.
 - `npm test`: 23 passing groups, including new planted-hoof and airborne-clearance assertions. `npm run check` and `git diff --check` pass. Engine, probabilities and settlement code unchanged.
 - Browser: inspected desktop and 375px mobile layouts, successful jump captured frames, manual collection, replay and mobile shear failure. Verified both audio toggles and Escape dismissal; no browser errors/warnings. Existing automated tests cover both failure variants, reduced motion and all settlement paths.
+
+## 2026-10-21 — day/night and softer mascot
+- Matching green cards for current and next payouts; removed stake-range caption and brand punctuation per annotations. Validation still enforces the same stake limits.
+- Added an accessible, persisted day/night toggle. Canvas colors interpolate for 350ms across sky, mountain faces, valley and ledges; night has a moon and stars. UI uses a coordinated palette. Reduced motion switches immediately. Landscape geometry and outcome logic are unchanged.
+- Softer goat chest, muzzle, eyes and ears preserve the jointed-leg rig and planted contact points.
+- All 24 test groups, syntax checks and diff whitespace checks passed. New tests cover reversible theme interpolation, reduced motion and round independence.
+- Browser verified desktop and 375px mobile day/night views, switching during a successful jump, captured landing, collection, and theme persistence after reload. No browser warnings/errors.

@@ -7,6 +7,7 @@ const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x
 export class MountainScene {
   constructor(canvas, audio) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.audio = audio;
+    this.night = 0; this.themeTransition = null;
     this.stage = 0; this.camera = 0; this.motion = null; this.collected = false; this.fallen = false; this.failedLedge = -1;
     this.motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
     this.reducedOverride = null;
@@ -24,6 +25,31 @@ export class MountainScene {
     });
     const frame = now => { if (!document.hidden) this.draw(now); this.frameId = requestAnimationFrame(frame); };
     this.frameId = requestAnimationFrame(frame);
+  }
+  setNight(night, instant = false) {
+    const target = night ? 1 : 0;
+    if (instant || this.reduced) { this.night = target; this.themeTransition = null; }
+    else this.themeTransition = { from: this.night, target, start: performance.now() };
+  }
+  color(day) {
+    const palette = {
+      '#b8d8d8':'#182c49','#99cbd5':'#12213d','#e0e9d4':'#395774','#eaeacd':'#50677c',
+      '#b5cfcb':'#50657e','#a2c3c2':'#3d536e','#e7eede':'#b1c6d5',
+      '#a8c7c5':'#4a637d','#94b8b8':'#354c68','#f1f2df':'#c8d9e0',
+      '#9dbebb':'#3a566e','#8cafad':'#30485f','#e0e8d7':'#a5bfce',
+      '#a2c2bb':'#415f73','#8cb2aa':'#324e64','#d8e6d5':'#a2bdcb',
+      '#83a795':'#314e5d','#6f9883':'#263f50','#b1cfc1':'#7695a6','#608a75':'#294654',
+      '#496d50':'#263d4c','#3e634d':'#203846','#557653':'#304d58',
+      '#727e6a':'#596f7b','#919781':'#83949a','#616f60':'#405764','#a2a28a':'#9aa8ac',
+      '#aab28a':'#809a93','#c1ce93':'#aec5b4','#c4c8a1':'#b3c5ba','#e0e3b6':'#d5e3cd',
+      '#eaf0dc00':'#7392b000','#eaf0dc1c':'#7392b010','#eaf0dc55':'#7392b030',
+      '#fcfbea':'#a8bfd2','#fcfbea00':'#a8bfd200','#f9f4cc80':'#bfdafa40','#f9f4cc00':'#bfdafa00',
+      '#f9f5d7':'#e1ebed'
+    };
+    const end = palette[day];
+    if (!end || !this.night) return day;
+    const channel = i => Math.round(lerp(parseInt(day.slice(i,i+2),16),parseInt(end.slice(i,i+2),16),this.night)).toString(16).padStart(2,'0');
+    return '#' + channel(1) + channel(3) + channel(5) + (day.length===9 ? channel(7) : '');
   }
   setReducedOverride(value) {
     this.reducedOverride = value;
@@ -57,11 +83,16 @@ export class MountainScene {
   }
   polygon(points, fill, stroke, width = 1) {
     const c = this.ctx; c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath();
-    if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = width; c.stroke(); }
+    if (fill) { c.fillStyle = this.color(fill); c.fill(); } if (stroke) { c.strokeStyle = this.color(stroke); c.lineWidth = width; c.stroke(); }
   }
-  ellipse(x, y, rx, ry, color, rotation = 0) { const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2); c.fillStyle = color; c.fill(); }
-  line(points, color, width = 1) { const c = this.ctx; c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.strokeStyle = color; c.lineWidth = width; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
+  ellipse(x, y, rx, ry, color, rotation = 0) { const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2); c.fillStyle = this.color(color); c.fill(); }
+  line(points, color, width = 1) { const c = this.ctx; c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.strokeStyle = this.color(color); c.lineWidth = width; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
   draw(now) {
+    if (this.themeTransition) {
+      const t = clamp((now - this.themeTransition.start) / 350);
+      this.night = lerp(this.themeTransition.from, this.themeTransition.target, ease(t));
+      if (t === 1) this.themeTransition = null;
+    }
     this.clock = now / 1000;
     const c = this.ctx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.clearRect(0, 0, this.w, this.h);
     const m = this.motion; let pose = { crouch: 0, airborne: 0, nod: 0, scramble: 0, tilt: 0, walk: 0, opacity: 1, scale: 1, focus: 0, startled: 0, relief: 0 };
@@ -134,12 +165,20 @@ export class MountainScene {
   background() {
     const c = this.ctx, w = this.w, h = this.h, altitude = this.camera / STEP_COUNT;
     const sky = c.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, altitude > .4 ? '#99cbd5' : '#b8d8d8'); sky.addColorStop(.72, '#e0e9d4'); sky.addColorStop(1, '#eaeacd');
+    sky.addColorStop(0, this.color(altitude > .4 ? '#99cbd5' : '#b8d8d8')); sky.addColorStop(.72, this.color('#e0e9d4')); sky.addColorStop(1, this.color('#eaeacd'));
     c.fillStyle = sky; c.fillRect(0, 0, w, h);
     const sunX = w * .69 - this.camera * 9, sunY = h * .20 + altitude * 55;
     const glow = c.createRadialGradient(sunX, sunY, 10, sunX, sunY, 130);
-    glow.addColorStop(0, '#f9f4cc80'); glow.addColorStop(1, '#f9f4cc00'); c.fillStyle = glow; c.fillRect(0, 0, w, h);
+    glow.addColorStop(0, this.color('#f9f4cc80')); glow.addColorStop(1, this.color('#f9f4cc00')); c.fillStyle = glow; c.fillRect(0, 0, w, h);
     this.ellipse(sunX, sunY, 29 * this.s, 29 * this.s, '#f9f5d7');
+    if (this.night > 0) {
+      c.save();c.globalAlpha=this.night;
+      // Craters give the pale disk a moon silhouette without masking the sky.
+      this.ellipse(sunX-9*this.s,sunY-7*this.s,6*this.s,7*this.s,'#aebfd0');
+      this.ellipse(sunX+10*this.s,sunY+9*this.s,4*this.s,4*this.s,'#bdcfda');
+      for(let i=0;i<28;i++)this.ellipse(hash(i+80)*w,hash(i+120)*h*.30, .8+hash(i+22)*.7,.8+hash(i+22)*.7,'#dbe6e9');
+      c.restore();
+    }
     for (let j = 0; j < 5; j++) this.cloud((w * (.1 + j * .26) - this.camera * 13 + Math.sin(this.clock * .025 + j) * 14) % (w + 140), h * (.14 + (j % 3) * .09), (60 + hash(j) * 70) * this.s, .3);
     const farY = h * .62 + this.camera * 19;
     this.mountain(w * .19 - this.camera * 9, farY, w * .35 + 140, h * .38, '#b5cfcb', '#a2c3c2', '#e7eede');
@@ -155,7 +194,7 @@ export class MountainScene {
       this.pine(x, yy, 13 + hash(i + 9) * 27, '#608a75');
     }
     const mist = c.createLinearGradient(0, h*.42, 0, h);
-    mist.addColorStop(0,'#eaf0dc00'); mist.addColorStop(.52,'#eaf0dc1c'); mist.addColorStop(1,'#eaf0dc55'); c.fillStyle=mist; c.fillRect(0,0,w,h);
+    mist.addColorStop(0, this.color('#eaf0dc00')); mist.addColorStop(.52, this.color('#eaf0dc1c')); mist.addColorStop(1, this.color('#eaf0dc55')); c.fillStyle=mist; c.fillRect(0,0,w,h);
     if (this.camera > 1) for (let i=0;i<5;i++) this.cloud(w * (i*.27) - Math.sin(this.clock*.025+i)*30, h*.77 + Math.sin(i*2)*40 + (this.camera%1)*10, w*.22, clamp(this.camera/STEP_COUNT)*.55);
     // Fine wind strokes and a distant pair of birds give the landscape a little life.
     c.globalAlpha=.22;
@@ -164,7 +203,7 @@ export class MountainScene {
     for(let i=0;i<2;i++){const x=w*.72 + i*22 + Math.sin(this.clock*.16)*18, y=h*.30+i*12; const flap=Math.sin(this.clock*2+i)*2; this.line([[x-4,y+flap],[x,y+2],[x+5,y+flap]],'#75988b',1);}
   }
   cloud(x,y,size,alpha) {
-    const c=this.ctx; c.save(); c.globalAlpha=alpha; const g=c.createRadialGradient(x,y,1,x,y,size);g.addColorStop(0,'#fcfbea');g.addColorStop(1,'#fcfbea00');c.fillStyle=g;c.save();c.translate(x,y);c.scale(1,.25);c.fillRect(-size,-size,size*2,size*2);c.restore();c.restore();
+    const c=this.ctx; c.save(); c.globalAlpha=alpha; const g=c.createRadialGradient(x,y,1,x,y,size);g.addColorStop(0, this.color('#fcfbea'));g.addColorStop(1, this.color('#fcfbea00'));c.fillStyle=g;c.save();c.translate(x,y);c.scale(1,.25);c.fillRect(-size,-size,size*2,size*2);c.restore();c.restore();
   }
   mountain(x, bottom, width, height, light, dark, snow) {
     const top=bottom-height;
@@ -255,7 +294,7 @@ export class MountainScene {
     const breath=this.reduced?0:Math.sin(this.clock*2.3)*.35;
     if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-3,1,39,3,'#49564030');
     c.rotate(p.tilt);
-    const hipY=-47+p.crouch*12+breath;
+    const hipY=-43+p.crouch*12+breath;
     // Three-segment legs: hock/carpal flexion moves the body over fixed toes.
     const leg=(hx,far)=>{
       const rear=hx<0, stride=p.walk*(rear?-5:5);
@@ -273,35 +312,36 @@ export class MountainScene {
     // A longer ribcage, defined withers and a shaded belly retain the flat alpine palette.
     c.beginPath();c.moveTo(-46,hipY-16);c.bezierCurveTo(-40,hipY-34,-17,hipY-31,7,hipY-28);c.bezierCurveTo(20,hipY-34,32,hipY-23,30,hipY-7);c.bezierCurveTo(24,hipY+9,-20,hipY+13,-39,hipY+2);c.bezierCurveTo(-47,hipY-3,-50,hipY-9,-46,hipY-16);c.closePath();c.fillStyle='#edead3';c.fill();
     c.beginPath();c.moveTo(-44,hipY-9);c.bezierCurveTo(-27,hipY+7,7,hipY+5,26,hipY-9);c.bezierCurveTo(22,hipY+13,-20,hipY+14,-39,hipY+2);c.closePath();c.fillStyle='#cdd0b8';c.fill();
-    this.ellipse(-23,hipY-17,22,11,'#f6f1db',-.08);
-    this.ellipse(22,hipY-18,13,23,'#e4e3c9',.2);
+    this.ellipse(-22,hipY-16,25,16,'#f6f1db',-.08);
+    this.ellipse(20,hipY-19,17,24,'#e4e3c9',.12);
     leg(-29,false);leg(22,false);
     this.line([[-33,hipY-17],[-30,hipY-22],[-28,hipY-17]],'#d9dbc2',1);
     this.line([[12,hipY-21],[15,hipY-16],[14,hipY-9]],'#c7ccb2',1.3);
-    c.save();c.translate(26,hipY-31);c.rotate(p.nod*.7);
+    c.save();c.translate(24,hipY-30);c.rotate(p.nod*.7);
     // Tapered backward-curving horns, rather than curled ram horns.
     const horn=(dx,shade)=>{c.beginPath();c.moveTo(dx,-13);c.bezierCurveTo(dx-2,-30,dx-13,-44,dx-31,-46);c.bezierCurveTo(dx-21,-42,dx-10,-27,dx-8,-11);c.closePath();c.fillStyle=shade;c.fill();};
     horn(2,'#70735e');horn(12,'#969077');
     this.line([[3,-28],[8,-30]],'#c0b69a',1.2);this.line([[-4,-37],[0,-39]],'#c0b69a',1);this.line([[7,-20],[12,-21]],'#c0b69a',1.2);
     const ear=.1+p.focus*.25-p.startled*.5;
     this.ellipse(-4,-9,12,4,'#bbbfa5',-.2-ear);
-    this.ellipse(9,-7,11,17,'#f2edd6',-.25);
+    this.ellipse(10,-7,15,19,'#f2edd6',-.18);
     // Sloping forehead, long nasal bridge and small muzzle.
-    c.beginPath();c.moveTo(11,-20);c.bezierCurveTo(19,-18,20,-9,25,-4);c.lineTo(36,6);c.quadraticCurveTo(40,12,32,14);c.lineTo(21,12);c.bezierCurveTo(12,10,7,2,7,-8);c.closePath();c.fillStyle='#e6e4cc';c.fill();
+    c.beginPath();c.moveTo(11,-20);c.bezierCurveTo(19,-18,20,-9,25,-4);c.lineTo(31,4);c.quadraticCurveTo(40,10,31,14);c.lineTo(21,12);c.bezierCurveTo(12,10,7,2,7,-8);c.closePath();c.fillStyle='#e6e4cc';c.fill();
     this.polygon([[17,7],[17,18],[21,15],[22,23],[27,13],[27,9]],'#bfc6ac');
     this.line([[21,13],[22,19]],'#e9e8ce',1.3);
-    this.ellipse(32,9,7,4.5,'#858b74',.2);
+    this.ellipse(31,8,8,6,'#858b74',.12);
     this.ellipse(35,7.5,1.4,.9,'#434f41');
     this.line([[28,12],[35,12]],'#58614f',1);
     const blink=this.clock%5.8>5.6;
     if(blink&&!p.startled)this.line([[15,-8],[21,-7]],'#45513f',1.2);
     else {
-      this.ellipse(18,-8,3.2,p.startled?3:2.1,'#a9a77a',.15);
-      this.ellipse(18.5,-8,2.1,.8,'#303d34');
+      this.ellipse(18,-8,4.8,p.startled?5:3.8-p.focus*.4,'#fbf7df',.1);
+      this.ellipse(19,-8,2.6,2.8,'#9ca27a');
+      this.ellipse(19.5,-8,1.9,1.1,'#303d34');
       this.ellipse(17.5,-8.8,.55,.5,'#f4f1d9');
-      this.line([[14.8,-10],[18,-10.7],[21,-9.4]],'#626c54',1);
+      this.line([[14,-12],[18,-12.5],[22,-12]],'#747c5e',1.3);
     }
-    this.ellipse(1,-13,10,3.5,'#eae7ce',-.2-ear);
+    this.ellipse(-1,-13,12,4.8,'#eae7ce',-.2-ear);
     this.line([[-6,-12],[3,-14]],'#aeb79b',1.2);
     c.restore();c.restore();
   }
@@ -331,7 +371,7 @@ export class MountainScene {
       this.polygon([[0,h-40+down],[w*.12,h-22+down],[w*.28,h+38+down],[0,h+80]],'#496d50');
       for(let i=0;i<7;i++)this.pine(i*23-15,h+32+down,70+hash(i+33)*60,'#3e634d');
       for(let i=0;i<5;i++)this.pine(w-15-i*23,h+60+down,70+hash(i+54)*70,'#557653');c.restore();}
-    const g=c.createLinearGradient(0,h-95,0,h);g.addColorStop(0,'#274f3d00');g.addColorStop(1,'#274f3d22');c.fillStyle=g;c.fillRect(0,h-95,w,95);
+    const g=c.createLinearGradient(0,h-95,0,h);g.addColorStop(0, this.color('#274f3d00'));g.addColorStop(1, this.color('#274f3d22'));c.fillStyle=g;c.fillRect(0,h-95,w,95);
   }
   burst(final) { const count=this.reduced?12:final?100:42; for(let i=0;i<count;i++) this.particles.push({born:this.clock,x:this.baseX+this.shelterOffset()*this.s,y:this.baseY-50*this.s,vx:(hash(i+2)*2-1)*(final?210:125),vy:-90-hash(i+88)*170,color:['#eef2cf','#d9b96b','#d4e4a3','#efb184'][i%4],size:2+hash(i)*4}); }
   drawParticles(){const c=this.ctx;this.particles=this.particles.filter(p=>this.clock-p.born<2.7);for(const p of this.particles){const t=this.clock-p.born;c.save();c.globalAlpha=1-clamp((t-1)/1.7);c.translate(p.x+p.vx*t,p.y+p.vy*t+90*t*t);c.rotate(t*3);c.fillStyle=p.color;c.fillRect(-p.size/2,-p.size/2,p.size,p.size*.55);c.restore();}}

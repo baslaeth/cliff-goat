@@ -117,3 +117,15 @@ test('hoof contact stays planted through weight compression, with cloven toes on
   feet.length=0;scene.goat(0,0,{...base,airborne:1});
   assert(feet.every(foot=>foot.every(point=>point[1]<-2)), 'all hooves clear the ground during flight');
 });
+
+test('day/night interpolation is bounded, reversible, reduced-motion aware and independent of the round', () => {
+  const {scene}=makeScene(); scene.jump({from:0,success:true},()=>{});
+  const attempt=scene.motion;
+  scene.setNight(true); const start=scene.themeTransition.start;
+  scene.draw(start+175); assert(scene.night>0 && scene.night<1);
+  assert.notEqual(scene.color('#b8d8d8'),'#b8d8d8');
+  scene.draw(start+351); assert.equal(scene.night,1);
+  assert.equal(scene.color('#b8d8d8'),'#182c49'); assert.equal(scene.motion,attempt);
+  scene.setNight(false);scene.draw(scene.themeTransition.start+351);assert.equal(scene.night,0);
+  scene.setReducedOverride(true);scene.setNight(true);assert.equal(scene.night,1);assert.equal(scene.themeTransition,null);
+});

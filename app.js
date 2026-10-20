@@ -13,6 +13,21 @@ const music = new AlpineMusic(audio);
 const unlockAudio = async () => { await audio.unlock(); music.sync(); };
 const scene = new MountainScene($('scene'), audio);
 if (qa) qa.connect(game, scene, audio, music);
+let night = false;
+try { night = localStorage.getItem('cliff-goat-night') === 'true'; } catch { /* Optional preference. */ }
+function updateTheme(instant = false) {
+  document.documentElement.dataset.theme = night ? 'night' : 'day';
+  $('theme-toggle').setAttribute('aria-label', night ? 'Switch to day mode' : 'Switch to night mode');
+  $('theme-toggle').setAttribute('aria-pressed', String(night));
+  $('theme-toggle').querySelector('span').textContent = night ? '☀' : '☾';
+  scene.setNight(night, instant);
+}
+updateTheme(true);
+$('theme-toggle').addEventListener('click', () => {
+  night = !night; updateTheme();
+  try { localStorage.setItem('cliff-goat-night', String(night)); } catch { /* Optional preference. */ }
+});
+
 let startGuard = false;
 const presetButtons = [...document.querySelectorAll('[data-stake]')];
 let stakePresets = [500, 1000, 2500, 5000];

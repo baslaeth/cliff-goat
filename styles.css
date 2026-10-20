@@ -125,3 +125,31 @@ dialog .rules-note{font-size:11px}
 #audio-dialog{width:340px}#audio-dialog h2{font-size:24px}.audio-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid #dce2d3}.audio-row small{display:block;font-size:11px;color:#67745d;margin-top:4px}.audio-row button{display:flex;align-items:center;justify-content:center;gap:8px;min-width:80px;min-height:44px;border:1px solid #a8b98e;border-radius:8px;background:#e6efcf;color:#293f32;font-size:15px!important}.audio-row svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}#music-toggle[aria-pressed=false]{opacity:1;background:#f0f1eb}
 @media(max-width:1100px){.current-stat{padding:10px}.current-stat>strong{font-size:34px}.collectible b{font-size:21px}}
 @media(max-width:500px){.current-stat>strong{font-size:34px}.current-stat .stat-label{font-size:9px}.collectible b{font-size:22px}.balance>span{font-size:10px}.round-stats{align-items:center}}
+/* Matching payout cards and coordinated moonlit interface. */
+.next-stat{background:#edf3df;border:1px solid #d8e3c1;border-radius:12px;padding:12px 16px;align-self:stretch;justify-content:center}.next-stat .stat-label{font-size:10px;letter-spacing:.06em;color:#495e43}.round-stats{align-items:stretch}.current-stat,.next-stat{min-width:0;flex:1}.next-stat>strong{font-variant-numeric:tabular-nums}
+#theme-toggle{font-size:23px;line-height:1}
+:root,body,.game-shell,.mode-bar,.current-stat,.next-stat,dialog,.stake-input,.icon-button{transition:background-color .35s,color .35s,border-color .35s}
+:root[data-theme=night]{background:#121e2c;color:#e3ecdf;--ink:#e3ecdf;--muted:#b4c3bd;--line:#435762;--cream:#253a46}
+[data-theme=night] .game-shell,[data-theme=night] .control-panel,[data-theme=night] .action-block{background:#20333f;border-color:#435762}
+[data-theme=night] .mode-bar,[data-theme=night] dialog{background:#243a47;border-color:#435762}
+[data-theme=night] .brand,[data-theme=night] .icon-button{color:#e3ecdf}
+[data-theme=night] .icon-button{border-color:#4c626d;background:#243a47}
+[data-theme=night] .current-stat,[data-theme=night] .next-stat{background:#324d4d;border-color:#5e7970}
+[data-theme=night] .stat-label,[data-theme=night] .collectible,[data-theme=night] .balance>span,[data-theme=night] .section-label,[data-theme=night] .empty-history,[data-theme=night] .presets-edit{color:#c0d2c3}
+[data-theme=night] .stake-input,[data-theme=night] .stake-presets button,[data-theme=night] .mode-options button{background:#2c4350;border-color:#526b75;color:#e0e8de}
+[data-theme=night] .mode-options button[aria-pressed=true],[data-theme=night] .stake-presets button.selected{background:#526b4c;color:#f1f3db;border-color:#91a879}
+[data-theme=night] .stake-input button{background:#415b62;color:#e2e8d9}
+[data-theme=night] .button-jump{color:#253f32}
+[data-theme=night] .button-collect{background:#496e60;color:#f0f5e6}
+[data-theme=night] .height-badge{background:#294554cc;border-color:#89a8ad;color:#e3ecdf}
+[data-theme=night] .result-card{background:#263e49f5;border-color:#718b91;color:#e8f0df}
+[data-theme=night] .result-card p,[data-theme=night] .result-kicker,[data-theme=night] .result-profit{color:#c0d29d}
+[data-theme=night] .result-card.lost .result-value{color:#edbd9f}
+[data-theme=night] .history-item{background:#354f46;color:#d5e7b9}[data-theme=night] .history-item.lost{background:#514843;color:#edc9ae}
+[data-theme=night] dialog p,[data-theme=night] dialog li,[data-theme=night] dialog th,[data-theme=night] .audio-row small{color:#c0cfcc}
+[data-theme=night] .rules-note,[data-theme=night] .preset-fields input{background:#314b55;color:#e1eadb}
+[data-theme=night] .audio-row{border-color:#526b75}
+@media(max-width:1100px){.next-stat{padding:10px}.next-stat .stat-label{font-size:9px}.round-stats{gap:10px;padding-left:12px;padding-right:12px}}
+@media(max-width:500px){.round-stats{padding-left:0;padding-right:0}.next-stat .stat-label{font-size:9px}.header-actions{gap:4px}.brand{font-size:20px}.next-stat>strong{font-size:clamp(18px,5.8vw,25px)}}
+@media(prefers-reduced-motion:reduce){:root,body,.game-shell,.mode-bar,.current-stat,.next-stat,dialog,.stake-input,.icon-button{transition:none}}
+[data-theme=night] .brand-icon{background:#314b47;color:#dfedb4}
