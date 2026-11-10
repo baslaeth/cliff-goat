@@ -1,0 +1,7 @@
+{
+  "developmentBranch": "codex/feedback-development",
+  "allowedFiles": ["audio.js", "music.js", "scene.js", "styles.css"],
+  "maximumChangedLines": 250,
+  "maximumPatchBytes": 80000,
+  "maximumTasksPerDay": 5
+}
