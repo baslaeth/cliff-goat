@@ -37,7 +37,7 @@ jobs:
             const number = Number(process.env.ISSUE_NUMBER);
             if (!Number.isSafeInteger(number) || number < 1) throw new Error('Invalid issue number');
             const {data: issue} = await github.rest.issues.get({...context.repo, issue_number: number});
-            if (issue.pull_request || issue.state !== 'open' || !issue.body?.startsWith('<!-- n8n-game-feedback -->\n<!-- codex-ready:true -->')) {
+            if (issue.pull_request || issue.state !== 'open' || !issue.body?.startsWith('<!-- n8n-game-feedback -->\n\n<!-- codex-ready:true -->')) {
               throw new Error('Issue is not ready for Codex');
             }
             const fs = require('fs');
