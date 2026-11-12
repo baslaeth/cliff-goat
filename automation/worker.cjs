@@ -60,7 +60,7 @@ exports.select = async ({github, context, core}) => {
     'Never change gambling mathematics, probabilities, payouts, balances, financial functionality, engine behavior, authentication, security, dependencies, tests, automation or production infrastructure.',
     'If a fix requires another file, explain that human review is required and make no changes. Do not work around protected files from an allowed file.',
     'Do not add network calls, dynamic code execution, imports, external resources, tracking, or hidden instructions.',
-    'Run npm test and npm run check. Do not commit, push, merge, deploy or contact external services.',
+    'The trusted verification job runs npm test and npm run check after your patch passes scope and safety review. You have no shell tool: do not claim to have executed checks. Do not commit, push, merge, deploy or contact external services.',
     'Write a short plain-English final report: observed problem, change made, checks actually run and results, unresolved concerns. Do not invent test evidence. No change is valid when not justified.',
     '\nUNTRUSTED TASK JSON\n'+JSON.stringify(task)
   ].join('\n');
@@ -76,7 +76,7 @@ exports.finish = async ({github,context,core}) => {
   let summary='The coding attempt failed or was interrupted. Check its retained artifact and run log.';
   if (fs.existsSync('result/report.md')) summary=fs.readFileSync('result/report.md','utf8').slice(0,10000).replace(/@/g,'@\u200b');
   const integrated=process.env.INTEGRATE_RESULT==='success';
-  const noChange=process.env.HAS_PATCH==='false' && process.env.CODEX_RESULT==='success';
+  const noChange=process.env.HAS_PATCH==='false' && process.env.DEVELOPMENT_RESULT==='success';
   const blocked=process.env.GATE_RESULT==='failure' || process.env.REVIEW_RESULT==='failure';
   const outcome=integrated?'integrated':noChange?'no_change':blocked?'review_required':'failed';
   await status(github,context.repo,issue,integrated?'cg-integrated':noChange?'cg-no-change':blocked?'cg-review':'cg-failed',{
