@@ -314,6 +314,12 @@ export class MountainScene {
     this.ellipse(-10,hipY-13,34+stretch,24-p.crouch*2-p.airborne,'#d7dac0');
     this.ellipse(-11,hipY-17,33+stretch,23-p.crouch*2-p.airborne,'#f7f0d9');
     leg(-23,false);leg(18,false);
+    // Presentation-only scarf wrapped at the neck, anchored to the body (not the head) so it follows
+    // the crouch and stays behind the head outline. Two short tails sway slightly with the walk cycle.
+    this.line([[2,hipY-12],[14,hipY-17],[24,hipY-15]],'#c2553d',5.5);
+    this.polygon([[4,hipY-13],[12,hipY-15],[9,hipY+2+p.walk*1.5],[2,hipY-1]],'#b0472f');
+    this.polygon([[12,hipY-15],[19,hipY-17],[16,hipY+4-p.walk*1.5],[10,hipY+1]],'#9a3b28');
+    this.line([[5,hipY-12.5],[14,hipY-17.5],[23,hipY-15.5]],'#e8c48a',1.2);
     c.save();c.translate(22,hipY-36);c.rotate(p.nod*.65-(p.proud||0)*.06);
     // Broad hooked horns and big ears make a goat silhouette at small sizes.
     const horn=(dx,shade)=>{
