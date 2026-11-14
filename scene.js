@@ -293,8 +293,11 @@ export class MountainScene {
     c.save();c.translate(x,y);c.scale(s,s);c.globalAlpha=p.opacity;
     if(p.airborne<.15 && Math.abs(p.tilt)<.25)this.ellipse(-2,1,35,3,'#49564030');
     c.rotate(p.tilt);
-    const hipY=-28+p.crouch*8;
-    // Short, sturdy jointed legs. Toes stay anchored while the hips compress.
+    // Presentation-only leg lengthening: the hips and body rise by this many units while
+    // the toes stay on the ground line, so the visible leg is roughly 60% longer.
+    const legLength=12;
+    const hipY=-28-legLength+p.crouch*8;
+    // Jointed legs, longer than before. Toes stay anchored while the hips compress.
     const leg=(hx,far)=>{
       const rear=hx<0;
       const fx=hx+(rear?-12:14)*p.airborne+p.scramble*(rear?3:-3)+p.walk*(rear?-4:4);
