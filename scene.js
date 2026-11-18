@@ -314,6 +314,11 @@ export class MountainScene {
     this.ellipse(-10,hipY-13,34+stretch,24-p.crouch*2-p.airborne,'#d7dac0');
     this.ellipse(-11,hipY-17,33+stretch,23-p.crouch*2-p.airborne,'#f7f0d9');
     leg(-23,false);leg(18,false);
+    // Presentation-only knitted scarf wrapped at the neck: drawn after the body and before
+    // the head so the head overlaps it. Offsets are relative to hipY, so it follows the crouch.
+    this.line([[-7,hipY-19],[6,hipY-13],[21,hipY-19]],'#b5503c',7);
+    this.line([[-5,hipY-17],[6,hipY-11],[19,hipY-17]],'#d9785e',1.4);
+    this.polygon([[13,hipY-16],[22,hipY-17],[21,hipY-7],[16,hipY-5],[14,hipY-9]],'#9a4030');
     c.save();c.translate(22,hipY-36);c.rotate(p.nod*.65-(p.proud||0)*.06);
     // Broad hooked horns and big ears make a goat silhouette at small sizes.
     const horn=(dx,shade)=>{
