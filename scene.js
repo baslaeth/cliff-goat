@@ -44,7 +44,8 @@ export class MountainScene {
       '#aab28a':'#809a93','#c1ce93':'#aec5b4','#c4c8a1':'#b3c5ba','#e0e3b6':'#d5e3cd',
       '#eaf0dc00':'#7392b000','#eaf0dc1c':'#7392b010','#eaf0dc55':'#7392b030',
       '#fcfbea':'#a8bfd2','#fcfbea00':'#a8bfd200','#f9f4cc80':'#bfdafa40','#f9f4cc00':'#bfdafa00',
-      '#f9f5d7':'#e1ebed'
+      '#f9f5d7':'#e1ebed',
+      '#b5563f':'#7a3a31','#a34d39':'#6a3229','#e8c27a':'#9c8150'
     };
     const end = palette[day];
     if (!end || !this.night) return day;
@@ -314,6 +315,11 @@ export class MountainScene {
     this.ellipse(-10,hipY-13,34+stretch,24-p.crouch*2-p.airborne,'#d7dac0');
     this.ellipse(-11,hipY-17,33+stretch,23-p.crouch*2-p.airborne,'#f7f0d9');
     leg(-23,false);leg(18,false);
+    // Presentation-only scarf wrapped at the neck. It is drawn in body space, after the body and
+    // before the head group, so the chin overlaps its top edge and it follows tilt, crouch and scale.
+    this.polygon([[2,hipY-28],[10,hipY-33],[22,hipY-31],[25,hipY-21],[17,hipY-14],[4,hipY-16]],'#b5563f');
+    this.polygon([[6,hipY-17],[16,hipY-14],[13,hipY-2],[7,hipY-4]],'#a34d39');
+    this.line([[5,hipY-23],[21,hipY-22]],'#e8c27a',1.5);
     c.save();c.translate(22,hipY-36);c.rotate(p.nod*.65-(p.proud||0)*.06);
     // Broad hooked horns and big ears make a goat silhouette at small sizes.
     const horn=(dx,shade)=>{
